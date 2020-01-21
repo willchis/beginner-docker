@@ -1,5 +1,16 @@
-FROM mcr.microsoft.com/dotnet/core/runtime:2.1
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2 AS build-env
+WORKDIR /app
 
-COPY app/bin/Release/netcoreapp2.1/publish/ app/
+# Copy csproj and restore as distinct layers
+COPY app/*.csproj ./
+RUN dotnet restore
 
-ENTRYPOINT ["dotnet", "app/randomfacts.dll"]
+# Copy everything else and build
+COPY . ./
+RUN dotnet publish -c Release -o out
+
+# Build runtime image
+FROM mcr.microsoft.com/dotnet/core/runtime:2.2
+WORKDIR /app
+COPY --from=build-env /app/out .
+ENTRYPOINT ["dotnet", "randomfacts.dll"]
