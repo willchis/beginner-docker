@@ -1,2 +1,3 @@
-app/bin
-app/obj
+coresite/bin
+coresite/obj
+.vs/
