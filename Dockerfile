@@ -19,6 +19,13 @@ RUN dotnet build "coresite.csproj" -c Release -o /app
 FROM build AS publish
 RUN dotnet publish "coresite.csproj" -c Release -o /app
 
+# Run a startup script that uses entity framework to update DB.
+WORKDIR /src
+RUN pwd
+RUN ls
+RUN chmod +x ./startup.sh
+CMD /bin/bash ./startup.sh
+
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app .

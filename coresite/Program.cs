@@ -14,11 +14,31 @@ namespace coresite
     {
         public static void Main(string[] args)
         {
-            CreateWebHostBuilder(args).Build().Run();
+            CreateWebHostBuilder(args)
+            .Build()
+            .MigrateDatabase() // Added for EF migrations
+            .Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>();
+
+        // Method to migrate DBs for EF to create tables.
+        // Required to run on startup for Docker.
+        public static IWebHost MigrateDatabase(this IWebHost webHost)
+        {
+            var serviceScopeFactory = (IServiceScopeFactory)webHost.Services.GetService(typeof(IServiceScopeFactory));
+
+            using (var scope = serviceScopeFactory.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                var dbContext = services.GetRequiredService<YourDbContext>();
+
+                dbContext.Database.Migrate();
+            }
+
+            return webHost;
+        }
     }
 }
